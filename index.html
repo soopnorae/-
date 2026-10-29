@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>데이트 스크랩북</title>
+<meta name="description" content="둘이 보낸 날들을 티켓·영수증·폴라로이드로 모아두는 기록장">
+<meta name="theme-color" content="#b33f5e" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1d20" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="스크랩북">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+html { height: 100%; }
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+/* Layout: one scrapbook column (max 760px). Entries are physical objects (ticket, receipt,
+   boarding pass, polaroid) laid on cool grey paper with tape; month headers between them. */
+:root {
+  --paper: #e9ecea;
+  --paper-2: #f5f7f5;
+  --ink: #20252a;
+  --ink-2: #5c646b;
+  --line: #c6cbc8;
+  --rose: #b33f5e;
+  --rose-deep: #8e2f49;
+  --teal: #2a6f6a;
+  --teal-deep: #1d534f;
+  --tape: rgba(242, 204, 112, 0.72);
+  --shadow: 0 8px 22px rgba(30, 40, 40, 0.14), 0 1px 2px rgba(30, 40, 40, 0.10);
+  --focus: #2d6dd2;
+  /* physical objects keep their own color in both themes */
+  --receipt: #fcfcf8;
+  --receipt-ink: #2a2a2a;
+  --receipt-dim: #7a7a74;
+  --poly: #fbfbf8;
+  --poly-ink: #2b2b2b;
+  --on-color: #fff;
+  --f-display: 'Do Hyeon', 'IBM Plex Sans KR', sans-serif;
+  --f-hand: 'Gaegu', 'Comic Sans MS', cursive;
+  --f-body: 'IBM Plex Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'Menlo', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1a1d20; --paper-2: #23272b; --ink: #e7e9e6; --ink-2: #a3aaa9; --line: #3a4044;
+    --rose: #c9506f; --rose-deep: #a03d58; --teal: #3a8c86; --teal-deep: #2b6b66;
+    --tape: rgba(226, 190, 104, 0.62);
+    --shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --focus: #7fb0ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1a1d20; --paper-2: #23272b; --ink: #e7e9e6; --ink-2: #a3aaa9; --line: #3a4044;
+  --rose: #c9506f; --rose-deep: #a03d58; --teal: #3a8c86; --teal-deep: #2b6b66;
+  --tape: rgba(226, 190, 104, 0.62);
+  --shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --focus: #7fb0ff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  background-image: radial-gradient(rgba(0,0,0,0.045) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 72px;
+  min-height: 100%;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+img { max-width: 100%; display: block; }
+
+.wrap { max-width: 760px; margin: 0 auto; }
+
+/* ---------- header ---------- */
+.top {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 12px 20px; padding-block: 28px 10px;
+}
+.brand h1 {
+  font-family: var(--f-hand); font-weight: 700; font-size: 2.3rem; line-height: 1.1; margin: 0;
+  text-wrap: balance; letter-spacing: -0.01em;
+}
+.brand .sub { color: var(--ink-2); margin-top: 4px; font-size: 0.95rem; }
+.brand .sub b { color: var(--rose); font-family: var(--f-display); font-weight: 400; font-size: 1.15rem; letter-spacing: 0.02em; }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+.btn {
+  border: 1px solid var(--line); background: var(--paper-2); color: var(--ink);
+  border-radius: 8px; padding: 8px 14px; font-weight: 500; line-height: 1.2;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { border-color: var(--ink-2); }
+.btn.primary { background: var(--rose); border-color: var(--rose); color: var(--on-color); }
+.btn.primary:hover { background: var(--rose-deep); }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 5px 10px; font-size: 0.85rem; border-radius: 6px; }
+.btn.danger { color: var(--rose); border-color: var(--rose); background: transparent; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ---------- toolbar ---------- */
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-block: 8px 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--line); background: transparent; border-radius: 999px;
+  padding: 4px 11px; font-size: 0.85rem; color: var(--ink-2);
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.search { flex: 1 1 160px; min-width: 0; }
+.search input {
+  width: 100%; border: 1px solid var(--line); background: var(--paper-2); border-radius: 8px;
+  padding: 7px 11px;
+}
+.stats { width: 100%; color: var(--ink-2); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- timeline ---------- */
+.month {
+  display: flex; align-items: center; gap: 12px; margin: 34px 0 18px;
+}
+.month h2 {
+  margin: 0; font-family: var(--f-hand); font-weight: 700; font-size: 1.5rem; position: relative;
+  padding: 2px 10px;
+}
+.month h2::before {
+  content: ""; position: absolute; left: -6px; top: -8px; width: 54px; height: 16px;
+  background: var(--tape); transform: rotate(-4deg); border-radius: 1px;
+}
+.month .rule { flex: 1; border-top: 1px dashed var(--line); }
+.month .n { color: var(--ink-2); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+
+.entry { position: relative; margin: 0 0 30px; }
+.entry .obj { position: relative; }
+.ticket, .receipt, .pass, .polaroid { box-shadow: var(--shadow); }
+.entry:nth-child(odd) .obj { transform: rotate(-0.6deg); }
+.entry:nth-child(even) .obj { transform: rotate(0.5deg); }
+.entry .tape {
+  position: absolute; z-index: 2; width: 74px; height: 20px; background: var(--tape);
+  left: 50%; top: -10px; transform: translateX(-50%) rotate(-2deg); border-radius: 1px;
+  pointer-events: none;
+}
+.entry .tape.r { left: auto; right: 18px; top: -9px; transform: rotate(6deg); }
+.entry .tape.l { left: 24px; top: -9px; transform: rotate(-7deg); }
+.entry .meta-row {
+  display: flex; gap: 8px; align-items: center; justify-content: flex-end;
+  margin-top: 8px; min-height: 28px;
+}
+.entry .meta-row .note { margin-right: auto; color: var(--ink-2); font-size: 0.82rem; }
+.hearts { font-family: var(--f-mono); letter-spacing: 0.08em; white-space: nowrap; }
+
+/* photos attached to ticket/receipt/boarding */
+.snaps { display: flex; flex-wrap: wrap; gap: 14px 16px; padding: 18px 10px 6px; }
+.snap {
+  background: var(--poly); color: var(--poly-ink); padding: 7px 7px 22px; width: 150px;
+  box-shadow: var(--shadow); cursor: zoom-in; border: 0; text-align: left;
+}
+.snap img { width: 100%; aspect-ratio: 1; object-fit: cover; background: #ddd; }
+.snap:nth-child(3n+1) { transform: rotate(-2.5deg); }
+.snap:nth-child(3n+2) { transform: rotate(1.8deg); }
+.snap:nth-child(3n+3) { transform: rotate(-0.8deg); }
+.snap .cap { font-family: var(--f-hand); font-size: 0.95rem; margin-top: 6px; line-height: 1.1; min-height: 1em; }
+
+/* ---------- ticket (movie / show) ---------- */
+.ticket {
+  display: grid; grid-template-columns: 1fr 112px;
+  background: var(--rose); color: var(--on-color); border-radius: 10px;
+  overflow: hidden;
+}
+.ticket.show { background: var(--teal); }
+.ticket .main { padding: 18px 20px 16px; min-width: 0; }
+.ticket .kicker {
+  font-family: var(--f-mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.85;
+  display: flex; justify-content: space-between; gap: 10px;
+}
+.ticket .title {
+  font-family: var(--f-display); font-size: clamp(1.7rem, 5vw, 2.5rem); line-height: 1.05; margin: 8px 0 12px;
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+.ticket .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px 14px; }
+.ticket .cell .k { font-family: var(--f-mono); font-size: 0.65rem; letter-spacing: 0.14em; opacity: 0.8; }
+.ticket .cell .v { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ticket .memo { margin-top: 12px; font-size: 0.92rem; opacity: 0.95; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ticket .stub {
+  position: relative; border-left: 2px dashed rgba(255,255,255,0.65);
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 14px 10px; background: rgba(0,0,0,0.08);
+}
+.ticket .stub::before, .ticket .stub::after {
+  content: ""; position: absolute; left: -11px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--paper);
+}
+.ticket .stub::before { top: -10px; }
+.ticket .stub::after { bottom: -10px; }
+.ticket .stub .admit {
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.22em; opacity: 0.9;
+}
+.ticket .stub .no { font-family: var(--f-mono); font-size: 0.7rem; opacity: 0.85; margin-top: 8px; }
+.barcode { display: flex; gap: 1px; align-items: flex-end; height: 34px; }
+.barcode i { display: block; background: currentColor; height: 100%; }
+.barcode i.s { height: 78%; }
+
+/* ---------- receipt (food / cafe) ---------- */
+.receipt {
+  background: var(--receipt); color: var(--receipt-ink); font-family: var(--f-mono);
+  max-width: 420px; margin: 0 auto; padding: 22px 22px 18px; position: relative;
+}
+.receipt::before, .receipt::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 8px;
+  background: radial-gradient(circle at 6px 0, transparent 5px, var(--receipt) 5.5px) 0 0 / 12px 8px repeat-x;
+}
+.receipt::before { top: -8px; }
+.receipt::after { bottom: -8px; transform: scaleY(-1); }
+.receipt .shop { text-align: center; font-weight: 500; font-size: 1.05rem; letter-spacing: 0.04em; overflow-wrap: anywhere; }
+.receipt .shop small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--receipt-dim); margin-top: 2px; letter-spacing: 0.12em; }
+.receipt .rt { text-align: center; font-size: 0.78rem; color: var(--receipt-dim); margin-top: 6px; }
+.receipt hr { border: 0; border-top: 1px dashed #999; margin: 12px 0; }
+.receipt .items { display: grid; gap: 4px; font-size: 0.9rem; }
+.receipt .items .row { display: flex; justify-content: space-between; gap: 12px; }
+.receipt .items .row span:first-child { overflow-wrap: anywhere; }
+.receipt .items .row span:last-child { color: var(--receipt-dim); flex-shrink: 0; }
+.receipt .total { display: flex; justify-content: space-between; font-weight: 500; font-size: 1rem; }
+.receipt .total .hearts { color: var(--rose); }
+.receipt .memo { margin-top: 10px; font-family: var(--f-hand); font-size: 1.05rem; line-height: 1.3; white-space: pre-wrap; overflow-wrap: anywhere; color: #3a3a3a; }
+.receipt .foot { text-align: center; font-size: 0.72rem; color: var(--receipt-dim); margin-top: 14px; letter-spacing: 0.08em; }
+.receipt .barcode { justify-content: center; margin-top: 10px; color: #333; height: 28px; }
+.receipt .title { text-align: center; font-weight: 500; margin-top: 8px; overflow-wrap: anywhere; }
+
+/* ---------- boarding pass (travel) ---------- */
+.pass { background: var(--paper-2); color: var(--ink); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.pass .band {
+  background: var(--teal); color: var(--on-color); padding: 10px 18px;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.16em;
+}
+.pass .body { padding: 18px 20px 16px; display: grid; gap: 14px; }
+.pass .route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.pass .route .code { font-family: var(--f-display); font-size: clamp(1.6rem, 6vw, 2.4rem); line-height: 1; overflow-wrap: anywhere; }
+.pass .route .code small { display: block; font-family: var(--f-mono); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--ink-2); margin-bottom: 4px; }
+.pass .route .to { text-align: right; }
+.pass .route .arrow { color: var(--teal); font-size: 1.3rem; }
+.pass .route .arrow::after { content: "✈"; }
+.pass .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px 14px; }
+.pass .cell .k { font-family: var(--f-mono); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--ink-2); }
+.pass .cell .v { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pass .memo { font-size: 0.92rem; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); border-top: 1px dashed var(--line); padding-top: 12px; }
+.pass .barcode { color: var(--ink); height: 30px; }
+
+/* ---------- polaroid (walk / etc) ---------- */
+.polaroid {
+  background: var(--poly); color: var(--poly-ink); padding: 14px 14px 18px; max-width: 460px; margin: 0 auto;
+}
+.polaroid .frame { aspect-ratio: 1 / 0.92; background: #e4e4df; overflow: hidden; position: relative; }
+.polaroid .frame img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+.polaroid .frame .blank {
+  position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px;
+  font-family: var(--f-hand); color: #8a8a84; font-size: 1.1rem;
+  background: repeating-linear-gradient(135deg, #e8e8e3 0 12px, #e1e1dc 12px 24px);
+}
+.polaroid .cap { font-family: var(--f-hand); font-size: 1.45rem; line-height: 1.15; margin-top: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.polaroid .cap small { display: block; font-size: 0.95rem; font-weight: 400; color: #666; margin-top: 2px; }
+.polaroid .memo { font-family: var(--f-hand); font-size: 1.05rem; line-height: 1.3; margin-top: 6px; white-space: pre-wrap; overflow-wrap: anywhere; color: #444; }
+.polaroid .more { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.polaroid .more button { border: 0; padding: 0; width: 64px; height: 64px; overflow: hidden; background: #ddd; cursor: zoom-in; transform: rotate(-2deg); }
+.polaroid .more button:nth-child(even) { transform: rotate(2deg); }
+.polaroid .more img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- empty / loading ---------- */
+.empty {
+  margin: 40px auto; max-width: 420px; text-align: center; padding: 30px 24px 26px;
+  border: 2px dashed var(--line); border-radius: 6px; color: var(--ink-2);
+}
+.empty h3 { font-family: var(--f-hand); font-size: 1.6rem; margin: 0 0 6px; color: var(--ink); }
+.empty p { margin: 0 0 16px; }
+.status { color: var(--ink-2); font-size: 0.85rem; text-align: center; padding: 10px; }
+
+/* ---------- dialogs ---------- */
+dialog {
+  border: 0; border-radius: 14px; padding: 0; background: var(--paper-2); color: var(--ink);
+  width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+  box-shadow: var(--shadow); overflow: auto;
+}
+dialog::backdrop { background: rgba(20, 22, 24, 0.55); }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 0; }
+.dlg-head h3 { margin: 0; font-family: var(--f-hand); font-size: 1.5rem; }
+.dlg-body { padding: 14px 20px 20px; display: grid; gap: 14px; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field label { font-size: 0.82rem; color: var(--ink-2); font-weight: 500; }
+.field input, .field select, .field textarea {
+  width: 100%; border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 8px 11px;
+}
+.field textarea { min-height: 84px; resize: vertical; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 460px) { .two { grid-template-columns: 1fr; } }
+.cat-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-pick button {
+  border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 6px 11px; font-size: 0.9rem;
+}
+.cat-pick button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.rating { display: flex; gap: 4px; }
+.rating button { border: 0; background: transparent; font-size: 1.5rem; line-height: 1; padding: 2px; color: var(--line); }
+.rating button.on { color: var(--rose); }
+.photo-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-grid .ph { position: relative; width: 76px; height: 76px; border-radius: 6px; overflow: hidden; background: var(--line); }
+.photo-grid .ph img { width: 100%; height: 100%; object-fit: cover; }
+.photo-grid .ph button {
+  position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 50%; border: 0;
+  background: rgba(0,0,0,0.6); color: #fff; font-size: 0.9rem; line-height: 1; padding: 0;
+}
+.photo-grid .add {
+  width: 76px; height: 76px; border: 1px dashed var(--line); border-radius: 6px; background: transparent;
+  color: var(--ink-2); display: grid; place-items: center; font-size: 0.75rem; line-height: 1.2; text-align: center;
+}
+.dlg-foot { display: flex; justify-content: flex-end; gap: 8px; align-items: center; flex-wrap: wrap; }
+.dlg-foot .msg { margin-right: auto; font-size: 0.85rem; color: var(--ink-2); min-height: 1.2em; }
+.dlg-foot .msg.err { color: var(--rose); }
+.hint { font-size: 0.8rem; color: var(--ink-2); }
+
+/* lightbox */
+#lightbox { background: transparent; width: auto; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); box-shadow: none; }
+#lightbox img { max-height: calc(100vh - 60px); max-width: 100%; border-radius: 6px; width: auto; }
+#lightbox button {
+  position: absolute; top: 8px; right: 8px; border: 0; border-radius: 50%; width: 34px; height: 34px;
+  background: rgba(0,0,0,0.6); color: #fff; font-size: 1.1rem;
+}
+#lightbox::backdrop { background: rgba(10, 12, 14, 0.86); }
+
+.confirm { display: inline-flex; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--rose); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .entry .obj, .snap, .btn, .chip { transition: transform 0.18s ease, background 0.15s ease; }
+  .snap:hover { transform: rotate(0) scale(1.04); }
+}
+
+/* ---------- app-only additions ---------- */
+body { padding-top: env(safe-area-inset-top, 0px); padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+.screen { max-width: 420px; margin: 12vh auto 0; padding: 26px 24px 24px; background: var(--paper-2); border-radius: 14px; box-shadow: var(--shadow); display: grid; gap: 14px; }
+.screen h2 { margin: 0; font-family: var(--f-hand); font-size: 1.8rem; line-height: 1.1; }
+.screen p { margin: 0; color: var(--ink-2); font-size: 0.92rem; }
+.screen .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.screen .actions .msg { margin-right: auto; font-size: 0.85rem; color: var(--ink-2); align-self: center; }
+.screen .actions .msg.err { color: var(--rose); }
+.screen .actions .msg.ok { color: var(--teal); }
+.banner { position: fixed; left: 0; right: 0; bottom: 0; padding: 8px max(16px, env(safe-area-inset-left, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); font-size: 0.85rem; text-align: center; z-index: 20; }
+.who { font-size: 0.8rem; color: var(--ink-2); }
+.who button { border: 0; background: none; color: var(--ink-2); text-decoration: underline; padding: 0 2px; }
+.fab { position: fixed; right: max(18px, env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 15; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--rose); color: var(--on-color); font-size: 1.9rem; line-height: 1; box-shadow: var(--shadow); display: grid; place-items: center; }
+.fab:hover { background: var(--rose-deep); }
+@media (min-width: 700px) { .fab { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- 1) 연결 설정 -->
+  <section class="screen" id="screen-setup" hidden>
+    <h2>저장소 연결</h2>
+    <p>Supabase 대시보드 → Project Settings → API 에 있는 두 값을 붙여넣으세요. 이 기기에만 저장됩니다.</p>
+    <div class="field"><label for="c-url">Project URL</label><input id="c-url" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off"></div>
+    <div class="field"><label for="c-key">anon public key</label><input id="c-key" type="text" placeholder="eyJhbGciOi..." autocomplete="off"></div>
+    <div class="actions"><span class="msg" id="setup-msg"></span><button class="btn primary" type="button" id="btn-setup">연결</button></div>
+  </section>
+
+  <!-- 2) 로그인 -->
+  <section class="screen" id="screen-login" hidden>
+    <h2>우리 데이트 기록</h2>
+    <p>둘만 쓰는 공간입니다. 각자 이메일로 가입한 뒤 로그인하세요.</p>
+    <div class="field"><label for="a-email">이메일</label><input id="a-email" type="email" autocomplete="username" inputmode="email"></div>
+    <div class="field"><label for="a-pass">비밀번호 (6자 이상)</label><input id="a-pass" type="password" autocomplete="current-password" minlength="6"></div>
+    <div class="actions">
+      <span class="msg" id="login-msg"></span>
+      <button class="btn" type="button" id="btn-signup">가입</button>
+      <button class="btn primary" type="button" id="btn-login">로그인</button>
+    </div>
+    <p class="hint"><button class="btn ghost sm" type="button" id="btn-reconfig">다른 저장소에 연결</button></p>
+  </section>
+
+  <!-- 3) 앱 -->
+  <div id="app" hidden>
+    <header class="top">
+      <div class="brand">
+        <h1 id="brand-title">우리 데이트 기록</h1>
+        <div class="sub" id="brand-sub">둘이서 보낸 날들을 한 장씩 모아둡니다</div>
+        <div class="who" id="who"></div>
+      </div>
+      <div class="top-actions">
+        <button class="btn ghost sm" id="btn-settings" type="button">설정</button>
+        <button class="btn primary" id="btn-add" type="button">+ 기록 추가</button>
+      </div>
+    </header>
+
+    <div class="tools" id="tools" hidden>
+      <div class="chips" id="chips" role="group" aria-label="카테고리 필터"></div>
+      <div class="search"><input id="q" type="search" placeholder="제목·장소·메모 검색" aria-label="검색"></div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <main id="timeline" aria-live="polite">
+      <div class="status">불러오는 중…</div>
+    </main>
+    <button class="fab" type="button" id="fab" aria-label="기록 추가">+</button>
+  </div>
+</div>
+
+<div class="banner" id="offline" hidden>오프라인입니다. 연결되면 자동으로 다시 불러옵니다.</div>
+
+<!-- entry editor -->
+<dialog id="editor" aria-labelledby="editor-title">
+  <form id="form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h3 id="editor-title">새 기록</h3>
+      <button class="btn ghost sm" type="button" id="btn-close-editor" aria-label="닫기">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="field">
+        <label>어떤 데이트였나요?</label>
+        <div class="cat-pick" id="cat-pick"></div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label for="f-date">날짜</label>
+          <input id="f-date" type="date" required>
+        </div>
+        <div class="field">
+          <label for="f-title" id="l-title">제목</label>
+          <input id="f-title" type="text" maxlength="80" required placeholder="영화 제목">
+        </div>
+      </div>
+      <div class="two" id="row-extra">
+        <div class="field" id="fw-place">
+          <label for="f-place" id="l-place">장소</label>
+          <input id="f-place" type="text" maxlength="60" placeholder="CGV 용산">
+        </div>
+        <div class="field" id="fw-extra">
+          <label for="f-extra" id="l-extra">좌석</label>
+          <input id="f-extra" type="text" maxlength="40" placeholder="J12, J13">
+        </div>
+      </div>
+      <div class="field" id="fw-menu" hidden>
+        <label for="f-menu">먹은 것 (한 줄에 하나)</label>
+        <textarea id="f-menu" placeholder="마르게리타 피자&#10;봉골레 파스타&#10;하우스 와인 2잔"></textarea>
+      </div>
+      <div class="field">
+        <label for="f-memo">메모</label>
+        <textarea id="f-memo" maxlength="2000" placeholder="그날 있었던 일, 기억하고 싶은 말"></textarea>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>오늘의 점수</label>
+          <div class="rating" id="rating" role="radiogroup" aria-label="점수"></div>
+        </div>
+        <div class="field" id="fw-photos">
+          <label>사진</label>
+          <div class="photo-grid" id="photo-grid"></div>
+          <input id="f-photos" class="sr" type="file" accept="image/*" multiple>
+          <div class="hint" id="photo-hint">여러 장 선택 가능 · 자동으로 줄여서 저장합니다</div>
+        </div>
+      </div>
+      <div class="dlg-foot">
+        <div class="msg" id="form-msg"></div>
+        <button class="btn" type="button" id="btn-cancel">취소</button>
+        <button class="btn primary" type="submit" id="btn-save">저장</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- settings -->
+<dialog id="settings" aria-labelledby="settings-title">
+  <form id="settings-form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h3 id="settings-title">설정</h3>
+      <button class="btn ghost sm" type="button" id="btn-close-settings" aria-label="닫기">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="field">
+        <label for="s-title">스크랩북 이름</label>
+        <input id="s-title" type="text" maxlength="40" placeholder="우리 데이트 기록">
+      </div>
+      <div class="field">
+        <label for="s-since">처음 만난 날 (D+ 계산용)</label>
+        <input id="s-since" type="date">
+      </div>
+      <div class="field">
+        <label>상대방 초대</label>
+        <div class="hint">아래 버튼으로 복사한 링크를 보내면, 상대 기기에서 저장소 연결 없이 바로 가입·로그인 화면이 열립니다.</div>
+        <div><button class="btn sm" type="button" id="btn-invite">초대 링크 복사</button> <span class="hint" id="invite-msg"></span></div>
+      </div>
+      <div class="dlg-foot">
+        <div class="msg" id="settings-msg"></div>
+        <button class="btn sm ghost" type="button" id="btn-logout">로그아웃</button>
+        <button class="btn" type="button" id="btn-cancel-settings">취소</button>
+        <button class="btn primary" type="submit">저장</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="lightbox" aria-label="사진 크게 보기">
+  <img id="lightbox-img" alt="">
+  <button type="button" id="lightbox-close" aria-label="닫기">✕</button>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  // ---------- categories ----------
+  const CATS = {
+    movie:  { label: '영화',      card: 'ticket',   titlePh: '영화 제목',      place: '극장',   placePh: 'CGV 용산',       extra: '좌석',   extraPh: 'J12, J13' },
+    show:   { label: '공연·전시', card: 'ticket',   titlePh: '공연·전시 이름', place: '장소',   placePh: '예술의전당',     extra: '좌석',   extraPh: '1층 B구역 7열' },
+    food:   { label: '식당',      card: 'receipt',  titlePh: '한 줄 요약',     place: '가게 이름', placePh: '을지로 ○○식당', extra: null,  menu: true },
+    cafe:   { label: '카페',      card: 'receipt',  titlePh: '한 줄 요약',     place: '카페 이름', placePh: '성수 ○○커피',   extra: null,  menu: true },
+    travel: { label: '여행',      card: 'pass',     titlePh: '여행 이름',      place: '출발',   placePh: '서울',           extra: '도착',   extraPh: '부산' },
+    walk:   { label: '산책·나들이', card: 'polaroid', titlePh: '어디 다녀왔나요', place: '장소', placePh: '한강공원',       extra: null },
+    etc:    { label: '기타',      card: 'polaroid', titlePh: '제목',           place: '장소',   placePh: '',               extra: null },
+  };
+  const CAT_ORDER = ['movie', 'show', 'food', 'cafe', 'travel', 'walk', 'etc'];
+  const BUCKET = 'photos';
+  const SIGN_TTL = 60 * 60; // 1h
+
+  // ---------- state ----------
+  const S = {
+    sb: null, session: null,
+    entries: [], settings: {},
+    urls: {},                // storage path -> {url, exp}
+    filter: 'all', q: '',
+    editing: null, cat: 'movie', rating: 0,
+    newFiles: [], keepPhotos: [], removedPhotos: [],
+    saving: false, loaded: false, channel: null,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  const urlOf = (path) => (S.urls[path] && S.urls[path].url) || '';
+
+  // ---------- config ----------
+  const LS_KEY = 'scrapbook.supabase';
+  function readConfig() {
+    const fromFile = (window.SCRAPBOOK_CONFIG || {});
+    if (fromFile.supabaseUrl && fromFile.supabaseAnonKey) return { url: fromFile.supabaseUrl.trim(), key: fromFile.supabaseAnonKey.trim(), source: 'file' };
+    // 초대 링크: #setup=<base64 json>
+    const m = location.hash.match(/^#setup=([A-Za-z0-9+/=_-]+)/);
+    if (m) {
+      try {
+        const j = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')))));
+        if (j.url && j.key) { localStorage.setItem(LS_KEY, JSON.stringify({ url: j.url, key: j.key })); history.replaceState(null, '', location.pathname); return { ...j, source: 'invite' }; }
+      } catch (_) {}
+    }
+    try { const j = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (j && j.url && j.key) return { ...j, source: 'local' }; } catch (_) {}
+    return null;
+  }
+  function inviteLink(cfg) {
+    const b = btoa(unescape(encodeURIComponent(JSON.stringify({ url: cfg.url, key: cfg.key })))).replace(/\+/g, '-').replace(/\//g, '_');
+    return location.origin + location.pathname + '#setup=' + b;
+  }
+
+  // ---------- helpers ----------
+  function fmtDate(iso, withDow) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    if (!y || !m || !d) return iso;
+    const base = `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')}`;
+    if (!withDow) return base;
+    const dt = new Date(y, m - 1, d);
+    return `${base} (${DOW[dt.getDay()]})`;
+  }
+  function hearts(n) { n = Math.max(0, Math.min(5, Number(n) || 0)); return '♥'.repeat(n) + '♡'.repeat(5 - n); }
+  function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function barcode(seed, n = 26) {
+    let h = hash(seed), out = '';
+    for (let i = 0; i < n; i++) { h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; out += `<i style="width:${1 + (h % 3)}px" class="${h % 5 === 0 ? 's' : ''}"></i>`; }
+    return `<div class="barcode" aria-hidden="true">${out}</div>`;
+  }
+  function serial(id) { return String(hash(id) % 1000000).padStart(6, '0'); }
+  function daysSince(iso) {
+    if (!iso) return null;
+    const [y, m, d] = iso.split('-').map(Number);
+    if (!y) return null;
+    const a = new Date(y, m - 1, d); const now = new Date();
+    const b = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.floor((b - a) / 86400000) + 1;
+  }
+  function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+  function show(id) {
+    for (const s of ['screen-setup', 'screen-login', 'app']) $(s).hidden = s !== id;
+  }
+  function errText(e, fallback) {
+    const m = (e && (e.message || e.error_description)) || '';
+    if (/Invalid login credentials/i.test(m)) return '이메일 또는 비밀번호가 맞지 않습니다';
+    if (/Email not confirmed/i.test(m)) return '메일함에서 확인 링크를 먼저 눌러 주세요';
+    if (/already registered/i.test(m)) return '이미 가입된 이메일입니다. 로그인하세요';
+    if (/Password should be/i.test(m)) return '비밀번호는 6자 이상이어야 합니다';
+    if (/Signups not allowed/i.test(m)) return '새 가입이 막혀 있습니다 (둘 다 가입한 뒤 잠근 상태)';
+    if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return '서버에 닿지 않습니다. 주소와 인터넷 연결을 확인하세요';
+    if (/row-level security|permission/i.test(m)) return '권한이 없습니다. 로그인 상태를 확인하세요';
+    if (/exceeded the maximum allowed size|Payload too large/i.test(m)) return '사진이 너무 큽니다';
+    return fallback || (m ? m : '알 수 없는 오류');
+  }
+
+  // ---------- rendering: header / tools ----------
+  function renderHeader() {
+    const t = S.settings.title || '우리 데이트 기록';
+    $('brand-title').textContent = t;
+    document.title = t;
+    const n = daysSince(S.settings.since);
+    $('brand-sub').innerHTML = n
+      ? `함께한 지 <b>D+${n.toLocaleString('ko-KR')}</b> · 기록 ${S.entries.length}개`
+      : `둘이서 보낸 날들을 한 장씩 모아둡니다`;
+    const email = S.session && S.session.user && S.session.user.email;
+    $('who').innerHTML = email ? `${esc(email)} 로 로그인됨` : '';
+  }
+  function renderChips() {
+    const counts = { all: S.entries.length };
+    for (const e of S.entries) counts[e.cat] = (counts[e.cat] || 0) + 1;
+    $('chips').innerHTML = [['all', '전체'], ...CAT_ORDER.map((k) => [k, CATS[k].label])]
+      .filter(([k]) => k === 'all' || counts[k])
+      .map(([k, label]) => `<button class="chip" type="button" data-f="${k}" aria-pressed="${S.filter === k}">${label} ${counts[k] || 0}</button>`)
+      .join('');
+  }
+
+  // ---------- rendering: cards ----------
+  function photoSnaps(e) {
+    const ids = e.photos || [];
+    if (!ids.length) return '';
+    return `<div class="snaps">${ids.map((id, i) =>
+      `<button class="snap" type="button" data-zoom="${esc(id)}" aria-label="사진 ${i + 1} 크게 보기">
+         <img src="${esc(urlOf(id))}" alt="" loading="lazy">
+         <div class="cap">${i === 0 ? esc(fmtDate(e.date)) : ''}</div>
+       </button>`).join('')}</div>`;
+  }
+  function cardTicket(e) {
+    const c = CATS[e.cat] || CATS.movie; const x = e.extra || {};
+    return `
+      <div class="ticket ${e.cat === 'show' ? 'show' : ''}">
+        <div class="main">
+          <div class="kicker"><span>${e.cat === 'show' ? 'SHOW · EXHIBITION' : 'CINEMA'} TICKET</span><span>${esc(fmtDate(e.date))}</span></div>
+          <div class="title">${esc(e.title)}</div>
+          <div class="grid">
+            <div class="cell"><div class="k">DATE</div><div class="v">${esc(fmtDate(e.date, true))}</div></div>
+            ${e.place ? `<div class="cell"><div class="k">${esc(c.place.toUpperCase())}</div><div class="v">${esc(e.place)}</div></div>` : ''}
+            ${x.seat ? `<div class="cell"><div class="k">SEAT</div><div class="v">${esc(x.seat)}</div></div>` : ''}
+            <div class="cell"><div class="k">RATING</div><div class="v hearts">${hearts(e.rating)}</div></div>
+          </div>
+          ${e.memo ? `<div class="memo">${esc(e.memo)}</div>` : ''}
+        </div>
+        <div class="stub">
+          <div class="admit">ADMIT TWO</div>
+          ${barcode(e.id, 18)}
+          <div class="no">No.${serial(e.id)}</div>
+        </div>
+      </div>`;
+  }
+  function cardReceipt(e) {
+    const c = CATS[e.cat] || CATS.food;
+    const items = (e.extra && e.extra.menu) || [];
+    const rows = items.length
+      ? items.map((it) => `<div class="row"><span>${esc(it)}</span><span>1</span></div>`).join('')
+      : `<div class="row"><span>${esc(e.title)}</span><span>1</span></div>`;
+    return `
+      <div class="receipt">
+        <div class="shop">${esc(e.place || e.title)}<small>${c.label.toUpperCase()} · ${esc(fmtDate(e.date))}</small></div>
+        <div class="rt">${esc(fmtDate(e.date, true))}</div>
+        ${e.place && items.length ? `<div class="title">${esc(e.title)}</div>` : ''}
+        <hr>
+        <div class="items">${rows}</div>
+        <hr>
+        <div class="total"><span>TOTAL</span><span class="hearts">${hearts(e.rating)}</span></div>
+        ${e.memo ? `<div class="memo">${esc(e.memo)}</div>` : ''}
+        <div class="foot">THANK YOU · COME AGAIN</div>
+        ${barcode(e.id, 30)}
+      </div>`;
+  }
+  function cardPass(e) {
+    const x = e.extra || {};
+    return `
+      <div class="pass">
+        <div class="band"><span>BOARDING PASS</span><span>${esc(fmtDate(e.date))}</span></div>
+        <div class="body">
+          <div class="route">
+            <div class="code"><small>FROM</small>${esc(e.place || '—')}</div>
+            <div class="arrow" aria-hidden="true"></div>
+            <div class="code to"><small>TO</small>${esc(x.to || '—')}</div>
+          </div>
+          <div class="grid">
+            <div class="cell"><div class="k">TRIP</div><div class="v">${esc(e.title)}</div></div>
+            <div class="cell"><div class="k">DATE</div><div class="v">${esc(fmtDate(e.date, true))}</div></div>
+            <div class="cell"><div class="k">PASSENGERS</div><div class="v">2</div></div>
+            <div class="cell"><div class="k">RATING</div><div class="v hearts">${hearts(e.rating)}</div></div>
+          </div>
+          ${e.memo ? `<div class="memo">${esc(e.memo)}</div>` : ''}
+          ${barcode(e.id, 40)}
+        </div>
+      </div>`;
+  }
+  function cardPolaroid(e) {
+    const ids = e.photos || []; const first = ids[0]; const rest = ids.slice(1);
+    return `
+      <div class="polaroid">
+        <div class="frame">
+          ${first
+            ? `<img src="${esc(urlOf(first))}" alt="${esc(e.title)}" data-zoom="${esc(first)}" loading="lazy">`
+            : `<div class="blank">사진 없이 남긴 하루</div>`}
+        </div>
+        <div class="cap">${esc(e.title)}<small>${esc(fmtDate(e.date, true))}${e.place ? ' · ' + esc(e.place) : ''} · <span class="hearts">${hearts(e.rating)}</span></small></div>
+        ${e.memo ? `<div class="memo">${esc(e.memo)}</div>` : ''}
+        ${rest.length ? `<div class="more">${rest.map((id, i) => `<button type="button" data-zoom="${esc(id)}" aria-label="사진 ${i + 2} 크게 보기"><img src="${esc(urlOf(id))}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+      </div>`;
+  }
+  function renderEntry(e) {
+    const c = CATS[e.cat] || CATS.etc;
+    const obj = c.card === 'ticket' ? cardTicket(e) : c.card === 'receipt' ? cardReceipt(e) : c.card === 'pass' ? cardPass(e) : cardPolaroid(e);
+    const snaps = c.card === 'polaroid' ? '' : photoSnaps(e);
+    const tapeClass = c.card === 'receipt' ? '' : (hash(e.id) % 2 ? 'l' : 'r');
+    return `
+      <article class="entry" data-id="${esc(e.id)}">
+        <div class="obj"><div class="tape ${tapeClass}"></div>${obj}</div>
+        ${snaps}
+        <div class="meta-row">
+          <span class="note">${esc(c.label)}</span>
+          <button class="btn sm ghost" type="button" data-edit="${esc(e.id)}">수정</button>
+          <span data-delwrap="${esc(e.id)}"><button class="btn sm ghost" type="button" data-del="${esc(e.id)}">삭제</button></span>
+        </div>
+      </article>`;
+  }
+  function visibleEntries() {
+    const q = S.q.trim().toLowerCase();
+    return S.entries.filter((e) => {
+      if (S.filter !== 'all' && e.cat !== S.filter) return false;
+      if (!q) return true;
+      const hay = [e.title, e.place, e.memo, e.extra && e.extra.to, e.extra && e.extra.seat, ...((e.extra && e.extra.menu) || [])].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  function renderTimeline() {
+    const list = visibleEntries(); const tl = $('timeline');
+    if (!S.loaded) { tl.innerHTML = `<div class="status">불러오는 중…</div>`; return; }
+    if (!S.entries.length) {
+      tl.innerHTML = `<div class="empty"><h3>아직 비어 있어요</h3><p>첫 데이트를 기록하면 여기에 티켓이나 영수증 모양으로 붙습니다.</p><button class="btn primary" type="button" data-add>+ 첫 기록 남기기</button></div>`;
+      return;
+    }
+    if (!list.length) { tl.innerHTML = `<div class="status">조건에 맞는 기록이 없습니다.</div>`; return; }
+    let html = '', curKey = null; const counts = {};
+    for (const e of list) { const k = (e.date || '').slice(0, 7); counts[k] = (counts[k] || 0) + 1; }
+    for (const e of list) {
+      const k = (e.date || '').slice(0, 7);
+      if (k !== curKey) {
+        curKey = k; const [y, m] = k.split('-');
+        html += `<div class="month"><h2>${y ? `${y}년 ${Number(m)}월` : '날짜 없음'}</h2><span class="rule"></span><span class="n">${counts[k]}개</span></div>`;
+      }
+      html += renderEntry(e);
+    }
+    tl.innerHTML = html;
+  }
+  function renderAll() {
+    renderHeader(); renderChips(); renderTimeline();
+    const total = S.entries.length;
+    const photos = S.entries.reduce((a, e) => a + ((e.photos || []).length), 0);
+    $('stats').textContent = total ? `기록 ${total}개 · 사진 ${photos}장` : '';
+    $('tools').hidden = total === 0;
+  }
+
+  // ---------- data ----------
+  async function signPhotos(paths) {
+    const now = Date.now();
+    const need = [...new Set(paths)].filter((p) => p && !(S.urls[p] && S.urls[p].exp > now + 60000));
+    if (!need.length) return;
+    const { data, error } = await S.sb.storage.from(BUCKET).createSignedUrls(need, SIGN_TTL);
+    if (error || !data) return;
+    for (const r of data) if (r.signedUrl && r.path) S.urls[r.path] = { url: r.signedUrl, exp: now + SIGN_TTL * 1000 };
+  }
+  async function load() {
+    if (!S.sb || !S.session) return;
+    const [{ data: rows, error }, { data: st }] = await Promise.all([
+      S.sb.from('entries').select('*').order('date', { ascending: false }).order('created_at', { ascending: false }).limit(2000),
+      S.sb.from('settings').select('*').eq('id', 'main').maybeSingle(),
+    ]);
+    if (error) { $('timeline').innerHTML = `<div class="status">${esc(errText(error, '기록을 불러오지 못했습니다'))}</div>`; return; }
+    S.entries = (rows || []).map((r) => ({
+      id: r.id, date: r.date, cat: r.cat, title: r.title, place: r.place || '', memo: r.memo || '',
+      rating: r.rating || 0, photos: r.photos || [], extra: r.extra || {}, createdAt: r.created_at, updatedAt: r.updated_at,
+    }));
+    S.settings = st ? { title: st.title || '', since: st.since || '' } : {};
+    await signPhotos(S.entries.flatMap((e) => e.photos));
+    S.loaded = true;
+    renderAll();
+  }
+  function subscribe() {
+    if (S.channel) { S.sb.removeChannel(S.channel); S.channel = null; }
+    let t = null; const bump = () => { clearTimeout(t); t = setTimeout(load, 250); };
+    S.channel = S.sb.channel('scrapbook')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, bump)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, bump)
+      .subscribe();
+  }
+
+  // ---------- editor ----------
+  function renderCatPick() {
+    $('cat-pick').innerHTML = CAT_ORDER.map((k) => `<button type="button" data-cat="${k}" aria-pressed="${S.cat === k}">${CATS[k].label}</button>`).join('');
+    const c = CATS[S.cat];
+    $('f-title').placeholder = c.titlePh; $('l-place').textContent = c.place; $('f-place').placeholder = c.placePh;
+    $('fw-extra').hidden = !c.extra;
+    if (c.extra) { $('l-extra').textContent = c.extra; $('f-extra').placeholder = c.extraPh || ''; }
+    $('fw-menu').hidden = !c.menu;
+  }
+  function renderRating() {
+    $('rating').innerHTML = [1, 2, 3, 4, 5].map((n) => `<button type="button" data-r="${n}" class="${n <= S.rating ? 'on' : ''}" role="radio" aria-checked="${n === S.rating}" aria-label="${n}점">${n <= S.rating ? '♥' : '♡'}</button>`).join('');
+  }
+  function renderPhotoGrid() {
+    const g = $('photo-grid');
+    for (const img of g.querySelectorAll('img[data-objurl]')) URL.revokeObjectURL(img.dataset.objurl);
+    const parts = [];
+    for (const id of S.keepPhotos) parts.push(`<div class="ph"><img src="${esc(urlOf(id))}" alt=""><button type="button" data-rm-id="${esc(id)}" aria-label="사진 제거">✕</button></div>`);
+    S.newFiles.forEach((f, i) => { const url = URL.createObjectURL(f); parts.push(`<div class="ph"><img src="${url}" alt="" data-objurl="${url}"><button type="button" data-rm-new="${i}" aria-label="사진 제거">✕</button></div>`); });
+    parts.push(`<button type="button" class="add" id="btn-add-photo">+ 사진<br>추가</button>`);
+    g.innerHTML = parts.join('');
+  }
+  function openEditor(entry) {
+    S.editing = entry || null;
+    S.cat = entry ? (entry.cat in CATS ? entry.cat : 'etc') : 'movie';
+    S.rating = entry ? (entry.rating || 0) : 0;
+    S.newFiles = []; S.keepPhotos = entry ? [...(entry.photos || [])] : []; S.removedPhotos = [];
+    $('editor-title').textContent = entry ? '기록 수정' : '새 기록';
+    $('f-date').value = entry ? entry.date : todayISO();
+    $('f-title').value = entry ? entry.title : '';
+    $('f-place').value = entry ? (entry.place || '') : '';
+    const x = (entry && entry.extra) || {};
+    $('f-extra').value = x.seat || x.to || '';
+    $('f-menu').value = (x.menu || []).join('\n');
+    $('f-memo').value = entry ? (entry.memo || '') : '';
+    setMsg('');
+    renderCatPick(); renderRating(); renderPhotoGrid();
+    $('editor').showModal();
+    setTimeout(() => $('f-title').focus(), 50);
+  }
+  function closeEditor() {
+    for (const img of $('photo-grid').querySelectorAll('img[data-objurl]')) URL.revokeObjectURL(img.dataset.objurl);
+    $('editor').close();
+  }
+  function setMsg(text, err) { const m = $('form-msg'); m.textContent = text; m.classList.toggle('err', !!err); }
+
+  async function compressImage(file) {
+    if (!/^image\//.test(file.type)) throw new Error('이미지 파일만 올릴 수 있습니다');
+    let bmp;
+    try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch { bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('이 사진 형식은 열 수 없습니다')); im.src = URL.createObjectURL(file); }); }
+    const w = bmp.width, h = bmp.height;
+    const scale = Math.min(1, 1600 / Math.max(w, h));
+    const cw = Math.round(w * scale), ch = Math.round(h * scale);
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    cv.getContext('2d').drawImage(bmp, 0, 0, cw, ch);
+    const out = await new Promise((res) => cv.toBlob(res, 'image/jpeg', 0.86));
+    if (!out) throw new Error('이미지를 변환하지 못했습니다');
+    return out;
+  }
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }));
+
+  async function saveEntry(ev) {
+    ev.preventDefault();
+    if (S.saving) return;
+    const title = $('f-title').value.trim(); const date = $('f-date').value;
+    if (!date) { setMsg('날짜를 골라 주세요', true); $('f-date').focus(); return; }
+    if (!title) { setMsg('제목을 적어 주세요', true); $('f-title').focus(); return; }
+    S.saving = true; $('btn-save').disabled = true;
+    const c = CATS[S.cat]; const extra = {}; const ex = $('f-extra').value.trim();
+    if (c.extra === '좌석' && ex) extra.seat = ex;
+    if (c.extra === '도착' && ex) extra.to = ex;
+    if (c.menu) { const menu = $('f-menu').value.split('\n').map((s) => s.trim()).filter(Boolean).slice(0, 30); if (menu.length) extra.menu = menu; }
+    try {
+      const id = S.editing ? S.editing.id : uuid();
+      const photos = [...S.keepPhotos];
+      for (let i = 0; i < S.newFiles.length; i++) {
+        setMsg(`사진 ${i + 1}/${S.newFiles.length} 올리는 중…`);
+        const b = await compressImage(S.newFiles[i]);
+        const path = `${id}/${uuid()}.jpg`;
+        const { error } = await S.sb.storage.from(BUCKET).upload(path, b, { contentType: 'image/jpeg', upsert: false });
+        if (error) throw error;
+        photos.push(path);
+      }
+      setMsg('저장 중…');
+      const row = {
+        id, date, cat: S.cat, title, place: $('f-place').value.trim(), memo: $('f-memo').value.trim(),
+        rating: S.rating, photos, extra, updated_at: new Date().toISOString(),
+      };
+      if (!S.editing) row.created_by = S.session.user.id;
+      const { error } = S.editing
+        ? await S.sb.from('entries').update(row).eq('id', id)
+        : await S.sb.from('entries').insert(row);
+      if (error) throw error;
+      if (S.removedPhotos.length) { await S.sb.storage.from(BUCKET).remove(S.removedPhotos); }
+      closeEditor();
+      await load();
+    } catch (err) {
+      setMsg(errText(err, '저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'), true);
+    } finally {
+      S.saving = false; $('btn-save').disabled = false;
+    }
+  }
+  async function deleteEntry(id) {
+    const e = S.entries.find((x) => x.id === id);
+    if (!e) return;
+    const { error } = await S.sb.from('entries').delete().eq('id', id);
+    if (error) {
+      const wrap = document.querySelector(`[data-delwrap="${CSS.escape(id)}"]`);
+      if (wrap) wrap.innerHTML = `<span class="confirm">${esc(errText(error, '삭제하지 못했습니다'))}</span>`;
+      return;
+    }
+    if (e.photos && e.photos.length) await S.sb.storage.from(BUCKET).remove(e.photos);
+    await load();
+  }
+
+  // ---------- settings ----------
+  function openSettings() {
+    $('s-title').value = S.settings.title || ''; $('s-since').value = S.settings.since || '';
+    $('settings-msg').textContent = ''; $('invite-msg').textContent = '';
+    $('settings').showModal();
+  }
+  async function saveSettings(ev) {
+    ev.preventDefault();
+    const { error } = await S.sb.from('settings').upsert({ id: 'main', title: $('s-title').value.trim(), since: $('s-since').value || null, updated_at: new Date().toISOString() });
+    if (error) { const m = $('settings-msg'); m.textContent = errText(error, '저장하지 못했습니다'); m.classList.add('err'); return; }
+    $('settings').close(); await load();
+  }
+  async function copyInvite() {
+    const cfg = readConfig(); if (!cfg) return;
+    const link = inviteLink(cfg);
+    try { await navigator.clipboard.writeText(link); $('invite-msg').textContent = '복사했습니다'; }
+    catch (_) { $('invite-msg').textContent = link; }
+  }
+
+  // ---------- auth ----------
+  async function login(signup) {
+    const email = $('a-email').value.trim(); const pass = $('a-pass').value;
+    const m = $('login-msg'); m.className = 'msg';
+    if (!email || pass.length < 6) { m.textContent = '이메일과 6자 이상 비밀번호를 넣어 주세요'; m.classList.add('err'); return; }
+    m.textContent = signup ? '가입 중…' : '로그인 중…';
+    const r = signup ? await S.sb.auth.signUp({ email, password: pass }) : await S.sb.auth.signInWithPassword({ email, password: pass });
+    if (r.error) { m.textContent = errText(r.error); m.classList.add('err'); return; }
+    if (signup && !r.data.session) { m.textContent = '확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 로그인하세요.'; m.classList.add('ok'); return; }
+    m.textContent = '';
+  }
+  async function logout() { $('settings').close(); await S.sb.auth.signOut(); }
+
+  function onSession(session) {
+    S.session = session;
+    if (!session) { S.entries = []; S.loaded = false; if (S.channel) { S.sb.removeChannel(S.channel); S.channel = null; } show('screen-login'); return; }
+    show('app'); renderAll(); load(); subscribe();
+  }
+
+  // ---------- connect ----------
+  function connect(cfg) {
+    try {
+      S.sb = window.supabase.createClient(cfg.url, cfg.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+    } catch (e) { show('screen-setup'); $('setup-msg').textContent = '주소나 키가 올바르지 않습니다'; $('setup-msg').classList.add('err'); return; }
+    S.sb.auth.getSession().then(({ data }) => onSession(data.session));
+    S.sb.auth.onAuthStateChange((_ev, session) => { if ((session && session.user && session.user.id) !== (S.session && S.session.user && S.session.user.id)) onSession(session); else S.session = session; });
+  }
+  function setup() {
+    const url = $('c-url').value.trim().replace(/\/+$/, ''); const key = $('c-key').value.trim();
+    const m = $('setup-msg'); m.className = 'msg';
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/.test(url)) { m.textContent = 'Project URL 형식이 아닙니다 (https://xxxx.supabase.co)'; m.classList.add('err'); return; }
+    if (key.length < 40) { m.textContent = 'anon key가 너무 짧습니다'; m.classList.add('err'); return; }
+    localStorage.setItem(LS_KEY, JSON.stringify({ url, key }));
+    connect({ url, key });
+  }
+
+  // ---------- events ----------
+  document.addEventListener('click', (ev) => {
+    const t = ev.target.closest('[data-f],[data-edit],[data-del],[data-del-yes],[data-del-no],[data-zoom],[data-add],[data-cat],[data-r],[data-rm-id],[data-rm-new],#btn-add-photo');
+    if (!t) return;
+    if (t.dataset.f) { S.filter = t.dataset.f; renderChips(); renderTimeline(); return; }
+    if (t.dataset.add !== undefined) { openEditor(null); return; }
+    if (t.dataset.edit) { const e = S.entries.find((x) => x.id === t.dataset.edit); if (e) openEditor(e); return; }
+    if (t.dataset.del) {
+      t.parentElement.innerHTML = `<span class="confirm">정말 삭제할까요? <button class="btn sm danger" type="button" data-del-yes="${esc(t.dataset.del)}">삭제</button><button class="btn sm ghost" type="button" data-del-no="${esc(t.dataset.del)}">취소</button></span>`;
+      return;
+    }
+    if (t.dataset.delYes) { deleteEntry(t.dataset.delYes); return; }
+    if (t.dataset.delNo) { renderTimeline(); return; }
+    if (t.dataset.zoom) { $('lightbox-img').src = urlOf(t.dataset.zoom); $('lightbox').showModal(); return; }
+    if (t.dataset.cat) { S.cat = t.dataset.cat; renderCatPick(); return; }
+    if (t.dataset.r) { S.rating = Number(t.dataset.r) === S.rating ? 0 : Number(t.dataset.r); renderRating(); return; }
+    if (t.dataset.rmId) { S.keepPhotos = S.keepPhotos.filter((x) => x !== t.dataset.rmId); S.removedPhotos.push(t.dataset.rmId); renderPhotoGrid(); return; }
+    if (t.dataset.rmNew !== undefined) { S.newFiles.splice(Number(t.dataset.rmNew), 1); renderPhotoGrid(); return; }
+    if (t.id === 'btn-add-photo') { $('f-photos').click(); return; }
+  });
+  $('f-photos').addEventListener('change', (ev) => { const files = Array.from(ev.target.files || []).filter((f) => /^image\//.test(f.type)); S.newFiles.push(...files.slice(0, 20)); ev.target.value = ''; renderPhotoGrid(); });
+  $('q').addEventListener('input', (ev) => { S.q = ev.target.value; renderTimeline(); });
+  $('btn-add').addEventListener('click', () => openEditor(null));
+  $('fab').addEventListener('click', () => openEditor(null));
+  $('btn-close-editor').addEventListener('click', closeEditor);
+  $('btn-cancel').addEventListener('click', closeEditor);
+  $('form').addEventListener('submit', saveEntry);
+  $('editor').addEventListener('cancel', (ev) => { ev.preventDefault(); closeEditor(); });
+  $('btn-settings').addEventListener('click', openSettings);
+  $('btn-close-settings').addEventListener('click', () => $('settings').close());
+  $('btn-cancel-settings').addEventListener('click', () => $('settings').close());
+  $('settings-form').addEventListener('submit', saveSettings);
+  $('btn-invite').addEventListener('click', copyInvite);
+  $('btn-logout').addEventListener('click', logout);
+  $('lightbox-close').addEventListener('click', () => $('lightbox').close());
+  $('lightbox').addEventListener('click', (ev) => { if (ev.target === ev.currentTarget) $('lightbox').close(); });
+  $('editor').addEventListener('dragover', (ev) => ev.preventDefault());
+  $('editor').addEventListener('drop', (ev) => { ev.preventDefault(); const files = Array.from(ev.dataTransfer.files || []).filter((f) => /^image\//.test(f.type)); if (files.length) { S.newFiles.push(...files.slice(0, 20)); renderPhotoGrid(); } });
+  $('btn-setup').addEventListener('click', setup);
+  $('btn-login').addEventListener('click', () => login(false));
+  $('btn-signup').addEventListener('click', () => login(true));
+  $('a-pass').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') login(false); });
+  $('btn-reconfig').addEventListener('click', () => { localStorage.removeItem(LS_KEY); show('screen-setup'); });
+  window.addEventListener('online', () => { $('offline').hidden = true; load(); });
+  window.addEventListener('offline', () => { $('offline').hidden = false; });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && S.session) load(); });
+  if (!navigator.onLine) $('offline').hidden = false;
+
+  // ---------- boot ----------
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+  if (!window.supabase) {
+    show('screen-setup'); $('setup-msg').textContent = '라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침하세요.'; $('setup-msg').classList.add('err');
+  } else {
+    const cfg = readConfig();
+    if (cfg) connect(cfg); else show('screen-setup');
+  }
+})();
+</script>
+</body>
+</html>
